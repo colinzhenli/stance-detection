@@ -49,7 +49,7 @@ def main(cfg):
         all_pred_insts.append(pred_instances)
 
         # parse gt bounding boxes
-        gt_instances_bbox = get_gt_bbox(gt_xyz, gt_instance_ids, gt_sem_labels,
+        gt_instances_bbox = get_gt_bbox(scan_id, gt_xyz, gt_instance_ids, gt_sem_labels,
                                         cfg.data.ignore_label, cfg.data.ignore_classes)
         all_gt_insts_bbox.append(gt_instances_bbox)
 

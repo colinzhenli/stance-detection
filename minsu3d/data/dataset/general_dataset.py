@@ -26,19 +26,30 @@ class GeneralDataset(Dataset):
         if cfg.model.model.use_multiview:
             self.multiview_hdf5_file = h5py.File(self.cfg.data.metadata.multiview_file, "r", libver="latest")
 
+    # def _load_from_disk(self):
+    #     with open(self.data_map[self.split]) as f:
+    #         self.scene_names = [line.strip() for line in f]
+    #     self.scenes = []
+    #     for scene_name in tqdm(self.scene_names, desc=f"Loading {self.split} data from disk"):
+    #         scene_path = os.path.join(self.dataset_root_path, self.split, scene_name + self.file_suffix)
+    #         scene = torch.load(scene_path)
+    #         scene["xyz"] -= scene["xyz"].mean(axis=0)
+    #         scene["rgb"] = scene["rgb"].astype(np.float32) / 127.5 - 1
+    #         self.scenes.append(scene)
     def _load_from_disk(self):
         with open(self.data_map[self.split]) as f:
-            self.scene_names = [line.strip() for line in f]
-        self.scenes = []
-        for scene_name in tqdm(self.scene_names, desc=f"Loading {self.split} data from disk"):
-            scene_path = os.path.join(self.dataset_root_path, self.split, scene_name + self.file_suffix)
-            scene = torch.load(scene_path)
-            scene["xyz"] -= scene["xyz"].mean(axis=0)
-            scene["rgb"] = scene["rgb"].astype(np.float32) / 127.5 - 1
-            self.scenes.append(scene)
+             self.object_ids = [line.strip() for line in f]
+        self.objects = []
+        for object_id in tqdm(self.object_ids, desc=f"Loading {self.split} data from disk"):
+            object_path = os.path.join(self.dataset_root_path, self.split, object_id + self.file_suffix)
+            object = torch.load(object_path)
+            object["depth"] = np.expand_dims(object["depth"], 3)
+            # object["xyz"] -= scene["xyz"].mean(axis=0)
+            # object["rgb"] = scene["rgb"].astype(np.float32) / 127.5 - 1
+            self.objects.append(object)
 
     def __len__(self):
-        return len(self.scenes)
+        return len(self.objects)
 
     def _get_augmentation_matrix(self):
         m = np.eye(3)

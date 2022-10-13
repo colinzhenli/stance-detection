@@ -1,6 +1,6 @@
 # Managed by Hydra
 
-dataset_root_path: ${project_root_path}/data
+dataset_root_path: ${project_root_path}/../data
 
 file_suffix: .pth
 ignore_label: -1

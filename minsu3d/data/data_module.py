@@ -22,8 +22,7 @@ class DataModule(pl.LightningDataModule):
             self.test_set = self.dataset(self.data_cfg, "test")
 
     def train_dataloader(self):
-        return DataLoader(self.train_set, batch_size=self.data_cfg.data.batch_size, shuffle=True, pin_memory=True,
-                          collate_fn=sparse_collate_fn, num_workers=self.data_cfg.data.num_workers)
+        return DataLoader(self.train_set, batch_size=self.data_cfg.data.batch_size, shuffle=True)
 
     def val_dataloader(self):
         return DataLoader(self.val_set, batch_size=1, pin_memory=True, collate_fn=sparse_collate_fn,

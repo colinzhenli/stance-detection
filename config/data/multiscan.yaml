@@ -3,16 +3,16 @@
 defaults:
   - base
 
-dataset: ScanNet
-dataset_path: ${data.dataset_root_path}/scannet
+dataset: Multiscan
+dataset_path: ${data.dataset_root_path}/obbpred
 
 metadata:
   metadata_path: ${data.dataset_path}/metadata
-  train_list: ${data.metadata.metadata_path}/scannetv2_train.txt
-  val_list: ${data.metadata.metadata_path}/scannetv2_val_sample.txt
-  test_list: ${data.metadata.metadata_path}/scannetv2_test.txt
-  combine_file: ${data.metadata.metadata_path}/scannetv2-labels.combined.tsv
-  multiview_file: ${data.dataset_path}/enet_feats_maxpool.hdf5
+  train_list: ${data.metadata.metadata_path}/obbpred_train.txt
+  val_list: ${data.metadata.metadata_path}/obbpred_val.txt
+  test_list: ${data.metadata.metadata_path}/obbpred_test.txt
+  # combine_file: ${data.metadata.metadata_path}/scannetv2-labels.combined.tsv
+  # multiview_file: ${data.dataset_path}/enet_feats_maxpool.hdf5
 
 classes: 20
 ignore_classes: [0, 1]
