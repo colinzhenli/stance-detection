@@ -17,13 +17,17 @@ def init_callbacks(cfg, output_path):
     return [checkpoint_monitor, gpu_cache_clean_monitor, lr_monitor, time_logging_callback]
 
 
-def init_model(cfg):
-    model = getattr(import_module("minsu3d.model"), cfg.model.model.module) \
-        ([100, 100, 100, 1], 2)
-    return model
 # def init_model(cfg):
-#     model = ObbPred([100, 100, 100], 2)
+#     model = getattr(import_module("minsu3d.model"), cfg.model.model.module) \
+#         ([1, 101, 101, 101], 2)
 #     return model
+# # def init_model(cfg):
+# #     model = ObbPred([100, 100, 100], 2)
+# #     return model
+
+def init_model(cfg):
+    model = getattr(import_module("minsu3d.model"), cfg.model.model.module)(cfg.model.model, cfg.data, cfg.model.optimizer, cfg.model.lr_decay, None)
+    return model
 
 @hydra.main(version_base=None, config_path="config", config_name="config")
 def main(cfg):

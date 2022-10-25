@@ -31,10 +31,10 @@ class ResidualBlock(pl.LightningModule):
             )
 
         self.conv_branch = nn.Sequential(
-            norm_fn(in_channels),
+            # norm_fn(in_channels),
             ME.MinkowskiReLU(inplace=True),
             ME.MinkowskiConvolution(in_channels, out_channels, kernel_size=3, dimension=dimension),
-            norm_fn(out_channels),
+            # norm_fn(out_channels),
             ME.MinkowskiReLU(inplace=True),
             ME.MinkowskiConvolution(out_channels, out_channels, kernel_size=3, dimension=dimension)
         )
