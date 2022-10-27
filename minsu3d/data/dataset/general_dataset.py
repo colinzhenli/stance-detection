@@ -1,6 +1,7 @@
 import os
 from tqdm import tqdm
 import numpy as np
+import math
 import h5py
 import torch
 from torch.utils.data import Dataset
@@ -30,12 +31,6 @@ class GeneralDataset(Dataset):
         with open(self.data_map[self.split]) as f:
             self.scene_names = [line.strip() for line in f]
         self.objects = []
-        # for scene_name in tqdm(self.scene_names, desc=f"Loading {self.split} data from disk"):
-        #     scene_path = os.path.join(self.dataset_root_path, self.split, scene_name + self.file_suffix)
-        #     scene = torch.load(scene_path)
-        #     scene["xyz"] -= scene["xyz"].mean(axis=0)
-        #     scene["rgb"] = scene["rgb"].astype(np.float32) / 127.5 - 1
-        #     self.scenes.append(scene)
 
         for scene_name in tqdm(self.scene_names, desc=f"Loading {self.split} data from disk"):
             scene_path = os.path.join(self.dataset_root_path, self.split, scene_name + self.file_suffix)
@@ -44,14 +39,30 @@ class GeneralDataset(Dataset):
                 object["xyz"] -= object["xyz"].mean(axis=0)
                 object["rgb"] = object["rgb"].astype(np.float32) / 127.5 - 1
                 object["scene_id"] = scene_name
-                if object["obb"]["up"][2] >= 0:
-                    object["class"] = np.array([1])
-                else:
-                    object["class"] = np.array([0])
+                # if object["obb"]["up"][2] >= 0:
+                #     object["class"] = np.array([1])
+                # else:
+                #     object["class"] = np.array([0])
                 self.objects.append(object)
 
     def __len__(self):
         return len(self.objects)
+
+    def _get_front_direction_class(self, object):
+        x = object["obb"]["front"][0]
+        y = object["obb"]["front"][1]
+        z = object["obb"]["front"][2]
+        lat = math.atan2(z, math.sqrt(x*x+y*y))
+        lng = math.atan2(y, x)
+        lat_class = np.floor(self.cfg.data.lat_class*(lat+math.pi/2)/(math.pi))
+        lat_class.astype(np.int)
+        if lat_class == self.cfg.data.lat_class:
+            lat_class -= 1
+        lng_class = np.floor(self.cfg.data.lng_class*(lng+math.pi)/(2*math.pi))
+        lng_class.astype(np.int)
+        if lng_class == self.cfg.data.lng_class:
+            lng_class -= 1
+        return lng_class*self.cfg.data.lat_class + lat_class
 
     def _get_augmentation_matrix(self):
         m = np.eye(3)
@@ -119,7 +130,7 @@ class GeneralDataset(Dataset):
         points = object["xyz"]  # (N, 3)
         colors = object["rgb"]  # (N, 3)
         normals = object["normal"]
-        classes = object["class"]
+        classes = np.array([self._get_front_direction_class(object)]).astype(np.int)
         if self.cfg.model.model.use_multiview:
             multiviews = self.multiview_hdf5_file[scene_id]
         instance_ids = object["instance_ids"]
