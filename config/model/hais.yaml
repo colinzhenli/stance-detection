@@ -53,6 +53,7 @@ model:
 
 
   test:
+    TEST_NMS_THRESH: 0.3
     TEST_SCORE_THRESH: 0.09
     TEST_NPOINT_THRESH: 100
     test_mask_score_thre: -0.5

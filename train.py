@@ -53,9 +53,21 @@ def main(cfg):
 
     print("==> initializing model ...")
     model = init_model(cfg)
-
+    pretrained_model = getattr(import_module("minsu3d.model"), cfg.model.model.pretrained_module)(cfg.model.model, cfg.data, cfg.model.optimizer, cfg.model.lr_decay, None)
+    # pretrained_model = getattr(import_module("minsu3d.model"), cfg.model.model.pretrained_module).load_from_checkpoint(cfg.model.ckpt_path)
+    pretrained_model.load_from_checkpoint(cfg.model.ckpt_path)
+    weights = pretrained_model.state_dict()
+    model_dict = model.state_dict()
+    weights = {k: v for k, v in weights.items() if k in model_dict}
+    model_dict.update(weights)
+    model.load_state_dict(model_dict)
+    print("model's state_dict: ")
+    for param_tensor in model.state_dict():
+        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+    
     print("==> start training ...")
-    trainer.fit(model=model, datamodule=data_module, ckpt_path=cfg.model.ckpt_path)
+    # trainer.fit(model=model, datamodule=data_module, ckpt_path=cfg.model.ckpt_path)
+    trainer.fit(model=model, datamodule=data_module)
 
 
 if __name__ == '__main__':

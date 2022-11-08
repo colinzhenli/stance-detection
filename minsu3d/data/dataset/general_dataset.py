@@ -33,7 +33,7 @@ class GeneralDataset(Dataset):
         self.objects = []
 
         for scene_name in tqdm(self.scene_names, desc=f"Loading {self.split} data from disk"):
-            scene_path = os.path.join(self.dataset_root_path, self.split, scene_name + self.file_suffix)
+            scene_path = os.path.join(self.dataset_root_path, "train", scene_name + self.file_suffix)
             scene = torch.load(scene_path)
             for object in scene["objects"]:
                 object["xyz"] -= object["xyz"].mean(axis=0)

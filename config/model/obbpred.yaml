@@ -22,10 +22,12 @@ lr_decay:
 
 model:
   module: ObbPred
-  experiment_name: run_1
+  pretrained_module: HAIS
+  experiment_name: run_3
 
   m: 16 # 16 or 32
   blocks: [1, 2, 3, 4, 5, 6, 7]
+  voxel_size: 20
   cluster_blocks: [1, 2]
   block_reps: 2
 

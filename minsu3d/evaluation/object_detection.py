@@ -7,7 +7,6 @@ import open3d as o3d
 import struct
 import torch
 import random
-import os
 from pytorch3d.ops import box3d_overlap
 from .visualiztion import custom_draw_geometry_with_camera_trajectory
 from .visualiztion import o3d_render, get_vertices, get_directions
@@ -422,9 +421,8 @@ def eval_sphere(pred_all, gt_all, ovthresh, use_07_metric=False, get_iou_func=ge
     return rec, prec, ap, avg_cosine
 
 
-def get_gt_bbox(scan_id, xyz, instance_ids, sem_labels, ignored_label, ignore_classes):
+def get_gt_bbox(xyz, instance_ids, sem_labels, ignored_label, ignore_classes):
     gt_bbox = []
-    object_ids = np.zeros([len(sem_labels)])
     unique_inst_ids = np.unique(instance_ids)
     for instance_id in unique_inst_ids:
         if instance_id == ignored_label:
@@ -434,8 +432,9 @@ def get_gt_bbox(scan_id, xyz, instance_ids, sem_labels, ignored_label, ignore_cl
         if sem_label in ignore_classes or sem_label == ignored_label:
             continue
         sem_label = sem_label - len(ignore_classes)
-        object_ids[0] += 1
+
         xyz_i = xyz[idx]
+        center_1 =  (np.amax(xyz_i, axis=0) + np.amin(xyz_i, axis=0))/2.0
         gt_obb = {}
         gt_pcd = o3d.geometry.PointCloud()
         gt_pcd.points = o3d.utility.Vector3dVector(xyz_i)
@@ -443,34 +442,6 @@ def get_gt_bbox(scan_id, xyz, instance_ids, sem_labels, ignored_label, ignore_cl
         gt_obb["obb"] = obb
         gt_obb["pcd"] = gt_pcd
         gt_obb["directions"] = get_directions(obb)
-        #output data
-        density = np.zeros([101, 101, 101])
-        center = np.asarray(obb.center)
-        extent = np.asarray(obb.extent)
-        R = np.asarray(obb.R)
-        object_id = (object_ids[0]).astype(np.int)
-        xyz_x = xyz_i[:,0]
-        xyz_y = xyz_i[:,1]
-        xyz_z = xyz_i[:,2]
-        x_min = xyz_x.min()
-        y_min = xyz_y.min()
-        z_min = xyz_z.min()
-        x_max = xyz_x.max()
-        y_max = xyz_y.max()
-        z_max = xyz_z.max()
-
-        # xyz_min = np.array(xyz_i).min(0)
-        # xyz_max = np.array(xyz_i).max(0)
-        for x, y, z in xyz_i:
-            x_grid = (100.0*(x-x_min)/(x_max-x_min)).astype(int)
-            y_grid = (100.0*(y-y_min)/(y_max-y_min)).astype(int)
-            z_grid = (100.0*(z-z_min)/(z_max-z_min)).astype(int)
-            density[x_grid][y_grid][z_grid] += 1
-        front = gt_obb["directions"][1]
-        upper = gt_obb["directions"][0]
-        torch.save({" density": density.astype(np.float32), "center": center.astype(np.float32), "extent": extent.astype(np.float32), "R": R.astype(np.float32),
-                        "front": front.astype(np.int32), "upper": upper.astype(np.int32)},
-                        os.path.join('../data/obbpred/train', f'{object_id}.pth'))
         pcd_set = {}
         obb_set = {}
         pcd_set[0] = gt_pcd

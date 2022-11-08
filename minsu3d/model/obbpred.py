@@ -20,6 +20,7 @@ class ObbPred(pl.LightningModule):
     def __init__(self, model, data, optimizer, lr_decay, inference=None):
         super().__init__()
         self.save_hyperparameters()
+        self.voxel_size = model.voxel_size
         input_channel = model.use_coord * 3 + model.use_color * 3 + model.use_normal * 3 + model.use_multiview * 128
         self.backbone = Backbone(input_channel=input_channel,
                                  output_channel=model.m,
@@ -46,6 +47,7 @@ class ObbPred(pl.LightningModule):
         self.pool2 = torch.nn.MaxPool3d(2)
         
         n_sizes = self._get_conv_output()
+        # self.fc0 = nn.Linear(n_sizes, 2048)
         self.fc1 = nn.Linear(n_sizes, 512)
         self.fc2 = nn.Linear(512, 128)
         self.fc3 = nn.Linear(128, (data.lat_class*data.lng_class))
@@ -57,15 +59,16 @@ class ObbPred(pl.LightningModule):
     # returns the size of the output tensor going into Linear layer from the conv block.
     def _get_conv_output(self):
         batch_size = self.hparams.data.batch_size
-        input = torch.autograd.Variable(torch.rand(batch_size, 16, 40, 40, 40))
-        output_feat = self._forward_features(input) 
-        n_size = output_feat.data.view(batch_size, -1).size(1)
+        input = torch.autograd.Variable(torch.rand(batch_size, 16, self.voxel_size, self.voxel_size, self.voxel_size))
+        # output_feat = self._forward_features(input) 
+        # n_size = output_feat.data.view(batch_size, -1).size(1)
+        n_size = input.data.view(batch_size, -1).size(1)
         return n_size
         
     #returns the voxelized feature from point-wise feature
     def _voxelize(self, features, xyz_i):
-        density = torch.zeros([40, 40, 40], dtype=torch.float).cuda()
-        downsample_feat = torch.zeros([16, 40, 40, 40], dtype=torch.float).cuda()
+        density = torch.zeros([self.voxel_size, self.voxel_size, self.voxel_size], dtype=torch.float).cuda()
+        downsample_feat = torch.zeros([16, self.voxel_size, self.voxel_size, self.voxel_size], dtype=torch.float).cuda()
         xyz_x = xyz_i[:,0]
         xyz_y = xyz_i[:,1]
         xyz_z = xyz_i[:,2]
@@ -77,15 +80,15 @@ class ObbPred(pl.LightningModule):
         z_max = xyz_z.max()
         id = 0
         for x, y, z in xyz_i:
-            x_grid = (39.0*(x-x_min)/(x_max-x_min)).to(torch.int)
-            y_grid = (39.0*(y-y_min)/(y_max-y_min)).to(torch.int)
-            z_grid = (39.0*(z-z_min)/(z_max-z_min)).to(torch.int)
+            x_grid = ((self.voxel_size-1)*(x-x_min)/(x_max-x_min)).to(torch.int)
+            y_grid = ((self.voxel_size-1)*(y-y_min)/(y_max-y_min)).to(torch.int)
+            z_grid = ((self.voxel_size-1)*(z-z_min)/(z_max-z_min)).to(torch.int)
             density[x_grid][y_grid][z_grid] = density[x_grid][y_grid][z_grid] + 1
             downsample_feat[:,x_grid,y_grid,z_grid] = features[id]
             id = id + 1
-        for x in range(40):
-            for y in range(40):
-                for z in range(40):
+        for x in range(self.voxel_size):
+            for y in range(self.voxel_size):
+                for z in range(self.voxel_size):
                     if density[x][y][z] != 0:
                         downsample_feat[:,x,y,z] = downsample_feat[:,x,y,z].clone()/density[x,y,z]
         else:
@@ -104,10 +107,10 @@ class ObbPred(pl.LightningModule):
         backbone_output_dict = self.backbone(data_dict["voxel_feats"], data_dict["voxel_locs"], data_dict["v2p_map"])
         features = backbone_output_dict["point_features"]
         if len(data_dict["batch_divide"]) != 1:
-            downsample_feat = torch.zeros([self.hparams.data.batch_size, 16, 40, 40, 40], dtype=torch.float).cuda()
-            density = torch.zeros([40, 40, 40], dtype=torch.float).cuda()
+            downsample_feat = torch.zeros([len(data_dict["batch_divide"]), 16, self.voxel_size, self.voxel_size, self.voxel_size], dtype=torch.float).cuda()
+            density = torch.zeros([self.voxel_size, self.voxel_size, self.voxel_size], dtype=torch.float).cuda()
             feature_divide_start = 0
-            for i in range(self.hparams.data.batch_size):
+            for i in range(len(data_dict["batch_divide"])):
                 feature_divide_end = feature_divide_start + data_dict["batch_divide"][i].item()
                 current_features = features[feature_divide_start:feature_divide_end]
                 xyz_i = data_dict["locs"][feature_divide_start:feature_divide_end]
@@ -115,8 +118,8 @@ class ObbPred(pl.LightningModule):
                 downsample_feat[i] = self._voxelize(current_features, xyz_i)
             return downsample_feat
         else:
-            density = torch.zeros([40, 40, 40], dtype=torch.float).cuda()
-            downsample_feat = torch.zeros([16, 40, 40, 40], dtype=torch.float).cuda()
+            density = torch.zeros([self.voxel_size, self.voxel_size, self.voxel_size], dtype=torch.float).cuda()
+            downsample_feat = torch.zeros([16, self.voxel_size, self.voxel_size, self.voxel_size], dtype=torch.float).cuda()
             xyz_i = data_dict["locs"]
             xyz_x = xyz_i[:,0]
             xyz_y = xyz_i[:,1]
@@ -129,15 +132,15 @@ class ObbPred(pl.LightningModule):
             z_max = xyz_z.max()
             id = 0
             for x, y, z in xyz_i:
-                x_grid = (39.0*(x-x_min)/(x_max-x_min)).to(torch.int)
-                y_grid = (39.0*(y-y_min)/(y_max-y_min)).to(torch.int)
-                z_grid = (39.0*(z-z_min)/(z_max-z_min)).to(torch.int)
+                x_grid = ((self.voxel_size-1)*(x-x_min)/(x_max-x_min)).to(torch.int)
+                y_grid = ((self.voxel_size-1)*(y-y_min)/(y_max-y_min)).to(torch.int)
+                z_grid = ((self.voxel_size-1)*(z-z_min)/(z_max-z_min)).to(torch.int)
                 density[x_grid][y_grid][z_grid] = density[x_grid][y_grid][z_grid] + 1
                 downsample_feat[:,x_grid,y_grid,z_grid] = features[id]
                 id = id + 1
-            for x in range(40):
-                for y in range(40):
-                    for z in range(40):
+            for x in range(self.voxel_size):
+                for y in range(self.voxel_size):
+                    for z in range(self.voxel_size):
                         if density[x][y][z] != 0:
                             downsample_feat[:,x,y,z] = downsample_feat[:,x,y,z].clone()/density[x,y,z]
             else:
@@ -146,8 +149,9 @@ class ObbPred(pl.LightningModule):
     # will be used during inference
     def forward(self, data_dict):
         x = self._forward_voxelize(data_dict)
-        x = self._forward_features(x)
+        # x = self._forward_features(x)
         x = x.view(x.size(0), -1)
+        # x = self.relu(self.fc0(x)).clone()
         x = self.relu(self.fc1(x)).clone()
         x = self.relu(self.fc2(x)).clone()
         x = self.log_softmax(self.fc3(x))

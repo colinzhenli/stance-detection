@@ -1,6 +1,6 @@
 # Managed by Hydra
 
-ckpt_path: null
+ckpt_path: /home/zhenli/data/training/HAIS-MultiScanObj-epoch=55.ckpt
 
 
 log:
@@ -8,7 +8,7 @@ log:
   # https://pytorch-lightning.readthedocs.io/en/stable/extensions/generated/pytorch_lightning.loggers.WandbLogger.html
   WandbLogger:
     project: General
-    name: run_1
+    name: run_4
   # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.loggers.tensorboard.html
   TensorBoardLogger:
     name: General
