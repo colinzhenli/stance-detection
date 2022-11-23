@@ -53,6 +53,7 @@ def sparse_collate_fn(batch):
     object_class = []
     instance_cls = []  # (total_nInst), long
     batch_divide = []
+    object_obbs = []
 
     scan_ids = []
 

@@ -33,7 +33,7 @@ class GeneralDataset(Dataset):
         self.objects = []
 
         for scene_name in tqdm(self.scene_names, desc=f"Loading {self.split} data from disk"):
-            scene_path = os.path.join(self.dataset_root_path, "train", scene_name + self.file_suffix)
+            scene_path = os.path.join(self.dataset_root_path, self.split, scene_name + self.file_suffix)
             scene = torch.load(scene_path)
             for object in scene["objects"]:
                 object["xyz"] -= object["xyz"].mean(axis=0)
@@ -130,6 +130,7 @@ class GeneralDataset(Dataset):
         points = object["xyz"]  # (N, 3)
         colors = object["rgb"]  # (N, 3)
         normals = object["normal"]
+        obbs = object["obb"]
         classes = np.array([self._get_front_direction_class(object)]).astype(np.int)
         if self.cfg.model.model.use_multiview:
             multiviews = self.multiview_hdf5_file[scene_id]
@@ -204,4 +205,5 @@ class GeneralDataset(Dataset):
         data["instance_num_point"] = np.array(instance_num_point, dtype=np.int32)  # (num_instance,)
         data["instance_semantic_cls"] = instance_semantic_cls
         data["class"] = classes
+        data["obb"] = obbs
         return data

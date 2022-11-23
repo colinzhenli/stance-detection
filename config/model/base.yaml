@@ -8,7 +8,7 @@ log:
   # https://pytorch-lightning.readthedocs.io/en/stable/extensions/generated/pytorch_lightning.loggers.WandbLogger.html
   WandbLogger:
     project: General
-    name: run_4
+    name: run_7
   # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.loggers.tensorboard.html
   TensorBoardLogger:
     name: General
@@ -23,7 +23,7 @@ trainer:
   num_nodes: 1
   max_epochs: 496
   num_sanity_val_steps: 20
-  check_val_every_n_epoch: 8
+  check_val_every_n_epoch: 1
 
 
 # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
@@ -32,7 +32,7 @@ checkpoint_monitor:
   mode: max
   save_last: False
   save_top_k: -1
-  every_n_epochs: 8
+  every_n_epochs: 1
 
 
 # https://pytorch-lightning.readthedocs.io/en/stable/common/optimization.html
