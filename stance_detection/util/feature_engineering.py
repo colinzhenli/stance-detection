@@ -48,7 +48,7 @@ def word_overlap_features(headline, body):
     clean_body = get_tokenized_lemmas(body)
     features = [
         len(set(clean_headline).intersection(clean_body)) / float(len(set(clean_headline).union(clean_body)))]
-    return features
+    return np.array(features)
 
 
 def refuting_features(headline, body):
@@ -70,7 +70,7 @@ def refuting_features(headline, body):
     ]
     clean_headline = get_tokenized_lemmas(headline)
     features = [1 if word in clean_headline else 0 for word in _refuting_words]
-    return features
+    return np.array(features)
 
 
 def polarity_features(headline, body):
@@ -193,4 +193,5 @@ def hand_features(headline, body):
     x = (binary_co_occurence(headline, body)
                  + binary_co_occurence_stops(headline, body)
                  + count_grams(headline, body))
-    return x
+
+    return np.array(x)

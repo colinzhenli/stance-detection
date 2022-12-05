@@ -3,5 +3,5 @@
 defaults:
   - base
 
-dataset: fnc
+dataset: FNC
 dataset_path: ${data.dataset_root_path}/fnc-1

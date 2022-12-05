@@ -2,7 +2,9 @@
 
 dataset_root_path: ${project_root_path}/../data
 file_suffix: .pth
+use_clean: True
 batch_size: 1
+num_workers: 8
 feature_file: ${project_root_path}/../data/features
 dataset: fnc
 dataset_path: ${data.dataset_root_path}/fnc-1

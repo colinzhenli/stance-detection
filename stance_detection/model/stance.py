@@ -6,11 +6,12 @@ import numpy as np
 import torchmetrics
 import pytorch_lightning as pl
 from stance_detection.model.module import External_feat
-from stance_detection.util.score import report_score, LABELS, score_submission
+from stance_detection.util.score import report_score, LABELS, score_submission, print_confusion_matrix
 
 
 class Stance(pl.LightningModule):
     def __init__(self, model, data, optimizer, lr_decay, inference=None):
+        super().__init__()
         self.save_hyperparameters()
         #def external feature
         self.external_feat = External_feat(self.hparams.data.feature_file)
@@ -25,29 +26,30 @@ class Stance(pl.LightningModule):
 
         self.pool1 = torch.nn.MaxPool1d(2)
         self.pool2 = torch.nn.MaxPool1d(2)
-        n_sizes = self._get_conv_output()
+        # n_sizes = self._get_conv_output()
         # self.fc0 = nn.Linear(n_sizes, 2048)
-        self.fc1 = nn.Linear(n_sizes, 32)
-        self.fc2 = nn.Linear(32, 4)
+        self.fc1 = nn.Linear(44, 128)
+        self.fc2 = nn.Linear(128, 4)
         self.accuracy = torchmetrics.Accuracy()
         self.log_softmax = nn.functional.log_softmax
         self.nll_loss = nn.functional.nll_loss
 
 
     # returns the size of the output tensor going into Linear layer from the conv block.
-    def _get_conv_output(self):
-        batch_size = self.hparams.data.batch_size
-        input = torch.autograd.Variable(torch.rand(batch_size, 44))
-        output = self.pool1(self.conv1(input)).clone()
-        n_size = input.data.view(batch_size, -1).size(1)
-        return n_size
+    # def _get_conv_output(self):
+    #     batch_size = self.hparams.data.batch_size
+    #     input = torch.autograd.Variable(torch.rand(batch_size, 44, 1))
+    #     output = self.pool1(self.conv1(input)).clone()
+    #     n_size = input.data.view(batch_size, -1).size(1)
+    #     return n_size
         
     # will be used during inference
     def forward(self, data_dict):
         output_dict = {}
-        x = self.external_feat()
-        x = torch.from_numpy(x)
-        x = self.pool1(self.conv1(x)).clone()
+        x = self.external_feat(data_dict)
+        x = torch.from_numpy(x).float().to(self.device)
+        x = x.view(-1, x.size(0))
+        # x = self.pool1(self.conv1(x)).clone()
         x = self.relu(self.fc1(x)).clone()
         x = self.log_softmax(self.fc2(x))
         output_dict["stance_scores"] = x        
@@ -84,7 +86,7 @@ class Stance(pl.LightningModule):
 
         if self.current_epoch > self.hparams.model.prepare_epochs:
             pred_stance = LABELS[stance_predictions]
-            gt_stance = data_dict["Stance"]
+            gt_stance = data_dict["stance"]
             return pred_stance, gt_stance
 
     def validation_epoch_end(self, outputs):
@@ -95,10 +97,11 @@ class Stance(pl.LightningModule):
             for pred_obb, gt_obb in outputs:
                 all_pred_stances.append(pred_obb)
                 all_gt_stances.append(gt_obb)
-            fold_score, _ = score_submission(all_gt_stances, all_pred_stances)
-            max_fold_score, _ = score_submission(all_gt_stances, all_gt_stances)
-            score = fold_score/max_fold_score        
-            self.log("val_eval/Scores", score, sync_dist=True)
+            score, cm = score_submission(all_gt_stances, all_pred_stances)
+            max_score, _ = score_submission(all_gt_stances, all_gt_stances)
+            final_score = score/max_score        
+            self.log("val_eval/Scores", final_score, sync_dist=True)
+            print_confusion_matrix(cm)
 
 
     def configure_optimizers(self):

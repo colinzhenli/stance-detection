@@ -15,15 +15,6 @@ class GeneralDataset(Dataset):
         self.cfg = cfg
         self.split = split
         self.dataset_root_path = cfg.data.dataset_path
-        self.file_suffix = cfg.data.file_suffix
-        self.full_scale = cfg.data.full_scale
-        self.scale = cfg.data.scale
-        self.max_num_point = cfg.data.max_num_point
-        self.data_map = {
-            "train": cfg.data.metadata.train_list,
-            "val": cfg.data.metadata.val_list,
-            "test": cfg.data.metadata.test_list
-        }
         self._load_from_disk()
 
     def _load_from_disk(self):
@@ -45,6 +36,7 @@ class GeneralDataset(Dataset):
         #match body ids with bodies
         for stance in self.stances:
             stance["body"] = self.articles[(stance["Body ID"])]
+            stance["headline"] = stance["Headline"]
 
         print("Total stances: " + str(len(self.stances)))
         print("Total bodies: " + str(len(self.articles)))
@@ -67,16 +59,16 @@ class GeneralDataset(Dataset):
         #         self.objects.append(object)
 
     def __len__(self):
-        return len(self.objects)
+        return len(self.stances)
 
-    def clean(s):
+    def clean(self, s):
     # Cleans a string: Lowercasing, trimming, removing non-alphanumeric
 
         return " ".join(re.findall(r'\w+', s, flags=re.UNICODE)).lower()
 
     def read(self,filename):
         rows = []
-        with open(self.path + "/" + filename, "r", encoding='utf-8') as table:
+        with open(self.dataset_root_path + "/" + filename, "r", encoding='utf-8') as table:
             r = DictReader(table)
 
             for line in r:

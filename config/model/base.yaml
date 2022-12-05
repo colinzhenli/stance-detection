@@ -1,19 +1,17 @@
 # Managed by Hydra
 
-ckpt_path: None
-
+ckpt_path: /home/zhenli/data/output/FNC/Stance/run_1/training/Stance-FNC-epoch=1.ckpt
 
 log:
   module: WandbLogger  # WandbLogger or TensorBoardLogger
   # https://pytorch-lightning.readthedocs.io/en/stable/extensions/generated/pytorch_lightning.loggers.WandbLogger.html
   WandbLogger:
-    project: FNC
-    name: run_1
+    project: General
+    name: run_7
   # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.loggers.tensorboard.html
   TensorBoardLogger:
-    name: FNC
+    name: General
     default_hp_metric: False
-
 
 # https://pytorch-lightning.readthedocs.io/en/stable/common/trainer.html
 trainer:
@@ -52,3 +50,4 @@ inference:
   evaluate: True
   save_predictions: False
   output_dir: prediction
+

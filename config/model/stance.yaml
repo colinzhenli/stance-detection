@@ -5,16 +5,16 @@ defaults:
 
 log:
   WandbLogger:
-    project: FNC
+    project: Stance
     name: ${model.model.experiment_name}
   TensorBoardLogger:
-    name: FNC
+    name: Stance
 
 trainer:
   max_epochs: 512
 
 model:
-  module: FNC
+  module: Stance
   experiment_name: run_1
 
   prepare_epochs: 1

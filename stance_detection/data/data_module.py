@@ -9,7 +9,7 @@ class DataModule(pl.LightningDataModule):
     def __init__(self, data_cfg):
         super().__init__()
         self.data_cfg = data_cfg
-        self.dataset = getattr(import_module('instance_detection.data.dataset'), data_cfg.data.dataset)
+        self.dataset = getattr(import_module('stance_detection.data.dataset'), data_cfg.data.dataset)
 
     def setup(self, stage=None):
         if stage == "fit" or stage is None:
