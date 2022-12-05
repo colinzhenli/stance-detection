@@ -1,17 +1,17 @@
 # Managed by Hydra
 
-ckpt_path: /home/zhenli/data/training/HAIS-MultiScanObj-epoch=55.ckpt
+ckpt_path: None
 
 
 log:
   module: WandbLogger  # WandbLogger or TensorBoardLogger
   # https://pytorch-lightning.readthedocs.io/en/stable/extensions/generated/pytorch_lightning.loggers.WandbLogger.html
   WandbLogger:
-    project: General
-    name: run_7
+    project: FNC
+    name: run_1
   # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.loggers.tensorboard.html
   TensorBoardLogger:
-    name: General
+    name: FNC
     default_hp_metric: False
 
 

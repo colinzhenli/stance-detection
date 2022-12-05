@@ -1,0 +1,7 @@
+# Managed by Hydra
+
+defaults:
+  - base
+
+dataset: fnc
+dataset_path: ${data.dataset_root_path}/fnc-1

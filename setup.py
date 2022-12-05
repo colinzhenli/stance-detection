@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name="minsu3d",
+    name="stance_detection",
     version="1.0",
     author="3dlg-hcvc",
     url="https://github.com/3dlg-hcvc/minsu3d-internal.git",
