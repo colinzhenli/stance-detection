@@ -5,3 +5,9 @@ defaults:
 
 dataset: FNC
 dataset_path: ${data.dataset_root_path}/fnc-1
+max_length: 5000
+embedding_dim: 100
+hidden_dim: 100
+vocab_size: 20929
+tagset_size: 50
+lim_unigram: 5000

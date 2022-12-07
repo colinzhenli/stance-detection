@@ -1,13 +1,13 @@
 # Managed by Hydra
 
-ckpt_path: /home/zhenli/data/output/FNC/Stance/run_1/training/Stance-FNC-epoch=1.ckpt
+ckpt_path: 
 
 log:
   module: WandbLogger  # WandbLogger or TensorBoardLogger
   # https://pytorch-lightning.readthedocs.io/en/stable/extensions/generated/pytorch_lightning.loggers.WandbLogger.html
   WandbLogger:
     project: General
-    name: run_7
+    name: run_3
   # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.loggers.tensorboard.html
   TensorBoardLogger:
     name: General
@@ -36,7 +36,8 @@ checkpoint_monitor:
 # https://pytorch-lightning.readthedocs.io/en/stable/common/optimization.html
 optimizer:
     name: Adam # Adam, AdamW or SGD
-    lr: 0.0015
+    lr: 0.001
+    weight_decay: 1e-5
 
 
 lr_decay:

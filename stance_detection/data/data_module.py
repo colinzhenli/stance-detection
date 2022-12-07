@@ -21,11 +21,11 @@ class DataModule(pl.LightningDataModule):
             self.test_set = self.dataset(self.data_cfg, "test")
 
     def train_dataloader(self):
-        return DataLoader(self.train_set, batch_size=self.data_cfg.data.batch_size, shuffle=True, pin_memory=True,
+        return DataLoader(self.train_set, batch_size=self.data_cfg.data.batch_size, shuffle=True, pin_memory=True, drop_last=True, 
                           num_workers=self.data_cfg.data.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.val_set, batch_size=1, pin_memory=True, 
+        return DataLoader(self.val_set, batch_size=1, pin_memory=True,
                           num_workers=self.data_cfg.data.num_workers)
 
     # def test_dataloader(self):
@@ -39,64 +39,20 @@ class DataModule(pl.LightningDataModule):
 
 # def sparse_collate_fn(batch):
 #     data = {}
-#     locs = []
-#     locs_scaled = []
-#     vert_batch_ids = []
-#     feats = []
-#     sem_labels = []
-#     instance_ids = []
-#     instance_info = []  # (N, 3)
-#     instance_num_point = []  # (total_nInst), int
-#     instance_offsets = [0]
-#     total_num_inst = 0
-#     object_class = []
-#     instance_cls = []  # (total_nInst), long
-#     batch_divide = []
-#     object_obbs = []
+#     stance_ids = []
+#     external_feats = []
+#     encodings = []
+#     stat_feats = []
 
-#     scan_ids = []
 
 #     for i, b in enumerate(batch):
-#         scan_ids.append(b["scan_id"])
-#         locs.append(torch.from_numpy(b["locs"]))
+#         stance_ids.append(torch.tensor(b["stance_id"]).to(dtype=torch.int))
+#         external_feats.append(torch.from_numpy(b["external_feat"]).to(dtype=torch.float32))
+#         stat_feats.append(torch.from_numpy(b["stat_feat"]).to(dtype=torch.float32))
+#         encodings.append(torch.from_numpy(b["encoding"]).to(dtype=torch.int))
+#     data["stance_id"] = torch.tensor(stance_ids)
+#     data["external_feat"] = torch.tensor(external_feats)
+#     data["encoding"] = torch.tensor(encodings)
+#     data["stat_feat"] = torch.tensor(stat_feats)
 
-#         locs_scaled.append(torch.from_numpy(b["locs_scaled"]).int())
-#         vert_batch_ids.append(torch.full((b["locs_scaled"].shape[0],), fill_value=i, dtype=torch.int16))
-#         batch_divide.append(torch.tensor([b["locs_scaled"].shape[0]]).int())
-#         feats.append(torch.from_numpy(b["feats"]))
-
-#         instance_ids_i = b["instance_ids"]
-#         instance_ids_i[instance_ids_i != -1] += total_num_inst
-#         total_num_inst += b["num_instance"].item()
-#         instance_ids.append(torch.from_numpy(instance_ids_i))
-
-#         sem_labels.append(torch.from_numpy(b["sem_labels"]))
-#         object_class.append(torch.from_numpy(b["class"]))
-
-#         instance_info.append(torch.from_numpy(b["instance_info"]))
-#         instance_num_point.append(torch.from_numpy(b["instance_num_point"]))
-#         instance_offsets.append(instance_offsets[-1] + b["num_instance"].item())
-
-#         instance_cls.extend(b["instance_semantic_cls"])
-
-#     tmp_locs_scaled = torch.cat(locs_scaled, dim=0)  # long (N, 1 + 3), the batch item idx is put in locs[:, 0]
-#     data['scan_ids'] = scan_ids
-#     data["locs"] = torch.cat(locs, dim=0)  # float (N, 3)
-#     data["vert_batch_ids"] = torch.cat(vert_batch_ids, dim=0)
-#     data["feats"] = torch.cat(feats, dim=0)
-
-#     data["sem_labels"] = torch.cat(sem_labels, dim=0)  # int (N,)
-#     data["instance_ids"] = torch.cat(instance_ids, dim=0)  # int, (N,)
-#     data["instance_info"] = torch.cat(instance_info, dim=0)  # float (total_nInst, 3)
-#     data["instance_num_point"] = torch.cat(instance_num_point, dim=0)  # (total_nInst)
-#     data["instance_offsets"] = torch.tensor(instance_offsets, dtype=torch.int32)  # int (B+1)
-#     data["instance_semantic_cls"] = torch.tensor(instance_cls, dtype=torch.int32)  # long (total_nInst)
-#     data["class"] = torch.tensor(object_class)
-#     #batch divide
-#     data["batch_divide"] = batch_divide
-#     # voxelize
-#     data["voxel_locs"], data["v2p_map"], data["p2v_map"] = common_ops.voxelization_idx(tmp_locs_scaled,
-#                                                                                        data["vert_batch_ids"],
-#                                                                                        len(batch),
-#                                                                                        4)
 #     return data

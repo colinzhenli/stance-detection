@@ -3,8 +3,11 @@
 dataset_root_path: ${project_root_path}/../data
 file_suffix: .pth
 use_clean: True
-batch_size: 1
+batch_size: 100
 num_workers: 8
-feature_file: ${project_root_path}/../data/features
 dataset: fnc
 dataset_path: ${data.dataset_root_path}/fnc-1
+feature_file: ${data.dataset_path}/features
+encoding_path: ${data.dataset_path}/encoding
+word_idx_path: ${data.dataset_path}/word_to_idx.pth
+stat_feat_path: ${data.dataset_path}/stat_features

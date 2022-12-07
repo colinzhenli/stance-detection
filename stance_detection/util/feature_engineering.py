@@ -33,25 +33,28 @@ def remove_stopwords(l):
     return [w for w in l if w not in feature_extraction.text.ENGLISH_STOP_WORDS]
 
 
-def gen_or_load_feats(feat_fn, headline, body, feature_file):
-    # if not os.path.isfile(feature_file):
-    #     feats = feat_fn(headlines, bodies)
-    #     np.save(feature_file, feats)
+def gen_or_load_feats(feat_fn, headlines, bodies, feature_file):
+    if not os.path.isfile(feature_file):
+        feats = feat_fn(headlines, bodies)
+        np.save(feature_file, feats)
 
-    return feat_fn(headline, body)
-
-
+    return np.load(feature_file)
 
 
-def word_overlap_features(headline, body):
-    clean_headline = get_tokenized_lemmas(headline)
-    clean_body = get_tokenized_lemmas(body)
-    features = [
-        len(set(clean_headline).intersection(clean_body)) / float(len(set(clean_headline).union(clean_body)))]
-    return np.array(features)
 
 
-def refuting_features(headline, body):
+def word_overlap_features(headlines, bodies):
+    X = []
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        clean_headline = get_tokenized_lemmas(headline)
+        clean_body = get_tokenized_lemmas(body)
+        features = [
+            len(set(clean_headline).intersection(clean_body)) / float(len(set(clean_headline).union(clean_body)))]
+        X.append(features)
+    return X
+
+
+def refuting_features(headlines, bodies):
     _refuting_words = [
         'fake',
         'fraud',
@@ -68,12 +71,15 @@ def refuting_features(headline, body):
         'pranks',
         'retract'
     ]
-    clean_headline = get_tokenized_lemmas(headline)
-    features = [1 if word in clean_headline else 0 for word in _refuting_words]
-    return np.array(features)
+    X = []
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        clean_headline = get_tokenized_lemmas(headline)
+        features = [1 if word in clean_headline else 0 for word in _refuting_words]
+        X.append(features)
+    return X
 
 
-def polarity_features(headline, body):
+def polarity_features(headlines, bodies):
     _refuting_words = [
         'fake',
         'fraud',
@@ -93,10 +99,13 @@ def polarity_features(headline, body):
     def calculate_polarity(text):
         tokens = get_tokenized_lemmas(text)
         return sum([t in _refuting_words for t in tokens]) % 2
-    features = []
-    features.append(calculate_polarity(headline))
-    features.append(calculate_polarity(body))
-    return np.array(features)
+    X = []
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        features = []
+        features.append(calculate_polarity(headline))
+        features.append(calculate_polarity(body))
+        X.append(features)
+    return np.array(X)
 
 
 def ngrams(input, n):
@@ -146,17 +155,17 @@ def append_ngrams(features, text_headline, text_body, size):
     return features
 
 
-def hand_features(headline, body):
+def hand_features(headlines, bodies):
 
     def binary_co_occurence(headline, body):
         # Count how many times a token in the title
         # appears in the body text.
         bin_count = 0
         bin_count_early = 0
-        for headline_token in clean(headline).split(" "):
-            if headline_token in clean(body):
+        for headline_token in headline.split(" "):
+            if headline_token in body:
                 bin_count += 1
-            if headline_token in clean(body)[:255]:
+            if headline_token in body[:255]:
                 bin_count_early += 1
         return [bin_count, bin_count_early]
 
@@ -166,8 +175,8 @@ def hand_features(headline, body):
         # are ignored.
         bin_count = 0
         bin_count_early = 0
-        for headline_token in remove_stopwords(clean(headline).split(" ")):
-            if headline_token in clean(body):
+        for headline_token in remove_stopwords(headline.split(" ")):
+            if headline_token in body:
                 bin_count += 1
                 bin_count_early += 1
         return [bin_count, bin_count_early]
@@ -176,22 +185,23 @@ def hand_features(headline, body):
         # Count how many times an n-gram of the title
         # appears in the entire body, and intro paragraph
 
-        clean_body = clean(body)
-        clean_headline = clean(headline)
         features = []
-        features = append_chargrams(features, clean_headline, clean_body, 2)
-        features = append_chargrams(features, clean_headline, clean_body, 8)
-        features = append_chargrams(features, clean_headline, clean_body, 4)
-        features = append_chargrams(features, clean_headline, clean_body, 16)
-        features = append_ngrams(features, clean_headline, clean_body, 2)
-        features = append_ngrams(features, clean_headline, clean_body, 3)
-        features = append_ngrams(features, clean_headline, clean_body, 4)
-        features = append_ngrams(features, clean_headline, clean_body, 5)
-        features = append_ngrams(features, clean_headline, clean_body, 6)
+        features = append_chargrams(features, headline, body, 2)
+        features = append_chargrams(features, headline, body, 8)
+        features = append_chargrams(features, headline, body, 4)
+        features = append_chargrams(features, headline, body, 16)
+        features = append_ngrams(features, headline, body, 2)
+        features = append_ngrams(features, headline, body, 3)
+        features = append_ngrams(features, headline, body, 4)
+        features = append_ngrams(features, headline, body, 5)
+        features = append_ngrams(features, headline, body, 6)
         return features
-    
-    x = (binary_co_occurence(headline, body)
+
+    X = []
+    for i, (headline, body) in tqdm(enumerate(zip(headlines, bodies))):
+        X.append(binary_co_occurence(headline, body)
                  + binary_co_occurence_stops(headline, body)
                  + count_grams(headline, body))
 
-    return np.array(x)
+
+    return X
