@@ -1,3 +1,5 @@
+# [project report](https://drive.google.com/file/d/1WoNK3m2clUxOPQhgcbPMPqQlHoHKHI1A/view?usp=sharing)
+
 # stance-detection-split2
 stance-detection-split1: the stance-detection project with data split version one, the repo is forked from url="https://github.com/3dlg-hcvc/minsu3d-internal.git", the author is "3dlg-hcvc", only the pytorch lightning frame is used\
 We proposed the feature combination and reduction methods for the FNC challenge in "http://www.fakenewschallenge.org/"
