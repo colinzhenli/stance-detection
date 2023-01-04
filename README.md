@@ -1,4 +1,4 @@
-# [project report](https://drive.google.com/file/d/1WoNK3m2clUxOPQhgcbPMPqQlHoHKHI1A/view?usp=sharing)
+# detailed paper work: [project report](https://drive.google.com/file/d/1WoNK3m2clUxOPQhgcbPMPqQlHoHKHI1A/view?usp=sharing)
 
 #Introduction
 In this project, we focus on a sub-task of fake news detection: [FNC]("http://www.fakenewschallenge.org/"). Given the headlines and body texts, the work is to classify the stance of body text w.r.t. the headlines into one of four categories: Agrees, Disagrees, Dicusses, and Unrelated.
